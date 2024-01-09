@@ -1,10 +1,11 @@
 <script setup>
-import ImageDescription from '@/components/ImageDescription.vue'
-import {onMounted, ref} from 'vue'
+import {onMounted, ref, watch, defineEmits} from 'vue'
 
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
 const imageDescription = ref('')
+const emit = defineEmits(['description-updated'])
+watch(imageDescription, (newVal) => emit('description-updated', newVal))
 
 const createCameraElement = () => {
   const constraints = (window.constraints = {
@@ -114,7 +115,6 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <ImageDescription :image-description="imageDescription" />
 </template>
 
 <style scoped>
