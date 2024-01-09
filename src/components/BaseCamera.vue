@@ -1,8 +1,10 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import ImageDescription from '@/components/ImageDescription.vue'
+import {onMounted, ref} from 'vue'
 
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
+const imageDescription = ref('')
 
 const createCameraElement = () => {
   const constraints = (window.constraints = {
@@ -72,14 +74,7 @@ const runInference = async () => {
     },
   )
   const data = await response.json()
-  console.log(data)
-}
-
-const downloadImage = () => {
-  const canvas = document.querySelector('canvas')
-  const image = canvas.toDataURL('image/jpg')
-  const link = document.getElementById('downloadPhoto')
-  link.href = image
+  imageDescription.value = data[0].generated_text
 }
 
 onMounted(() => {
@@ -92,14 +87,13 @@ onMounted(() => {
 <template>
   <div class="camera">
     <div class="wrapper">
-      <button @click="this.$parent.showCamera = false" class="button-close">
-        x
-      </button>
+      <div class="buttons">
       <button class="button" @click="toggleCamera()">
-        <span v-if="!isCameraOpen">Open Camera</span>
-        <span v-else>Close Camera</span>
+        <span v-if="!isCameraOpen">Buka Kamera</span>
+        <span v-else>Hentikan Kamera</span>
       </button>
-      <button @click="runInference()" class="button">Run Inference</button>
+      <button @click="runInference()" class="button">Deskripsikan Gambar</button>
+      </div>
       <div class="video-container">
         <video
           class="camera-video"
@@ -118,16 +112,9 @@ onMounted(() => {
           :height="337"
         ></canvas>
       </div>
-      <!--      <button class="button" @click="takePhoto">-->
-      <!--        <span>Snap!</span>-->
-      <!--      </button>-->
-      <!--      <button class="camera-download">-->
-      <!--        <a id="downloadPhoto" download="VueRocksPhoto.jpg" class="button" role="button" @click="downloadImage">-->
-      <!--          Download-->
-      <!--        </a>-->
-      <!--      </button>-->
     </div>
   </div>
+  <ImageDescription :image-description="imageDescription" />
 </template>
 
 <style scoped>
@@ -135,5 +122,18 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.canvas-photo {
+  display: none;
+}
+
+.buttons {
+  display: flex;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
 }
 </style>
