@@ -68,7 +68,7 @@ const runInference = async () => {
     {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer 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',
+        Authorization: 'Bearer ' + import.meta.env.VITE_HF_API_TOKEN,
         'Content-Type': 'application/json',
       },
       body: base64ToArrayBuffer(image),
@@ -77,10 +77,6 @@ const runInference = async () => {
   const data = await response.json()
   imageDescription.value = data[0].generated_text
 }
-
-onMounted(() => {
-  createCameraElement()
-})
 
 // setInterval(() => runInference(), 5000)
 </script>

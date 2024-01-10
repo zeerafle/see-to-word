@@ -1,5 +1,7 @@
 module.exports = {
+    'ignorePatterns': ['node_modules/*', 'dist/*', '.wrangler/*'],
     'env': {
+        'node': true,
         'browser': true,
         'es2021': true
     },

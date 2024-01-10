@@ -13,6 +13,7 @@ dist
 dist-ssr
 coverage
 *.local
+.wrangler
 
 /cypress/videos/
 /cypress/screenshots/
@@ -29,3 +30,4 @@ coverage
 
 *.tsbuildinfo
 /.env
+/.dev.vars

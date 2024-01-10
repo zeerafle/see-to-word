@@ -1,15 +1,42 @@
 <script setup>
-defineProps({
+import {ref, toRef, watch} from 'vue'
+
+const props = defineProps({
   imageDescription: {
     type: String,
     required: true,
   },
 })
+
+const imageDescription = toRef(props, 'imageDescription')
+const translatedDescription = ref('')
+
+watch(imageDescription, async (newVal) => {
+  translatedDescription.value = await translate(newVal)
+})
+
+const translate = async (text) => {
+  const url = '/translate'
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      'text': [text],
+      'sourceLang': 'EN',
+      'targetLang': 'ID',
+    })
+  })
+  const data = await response.json()
+  console.log(data)
+  return data.translations[0].text
+}
 </script>
 
 <template>
   <div class="description-box">
-    <p>{{ imageDescription }}</p>
+    <p>{{ translatedDescription }}</p>
   </div>
 </template>
 
