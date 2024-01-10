@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref, watch, defineEmits} from 'vue'
+import {ref, watch, defineEmits} from 'vue'
 
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
