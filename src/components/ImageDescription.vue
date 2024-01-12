@@ -16,21 +16,15 @@ watch(imageDescription, async (newVal) => {
 })
 
 const translate = async (text) => {
-  const url = '/translate'
+  const url = `https://deepl-backend.fly.dev/?text=${text}`
   const response = await fetch(url, {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      'text': [text],
-      'sourceLang': 'EN',
-      'targetLang': 'ID',
-    })
   })
   const data = await response.json()
-  console.log(data)
-  return data.translations[0].text
+  return data.text
 }
 </script>
 

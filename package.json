@@ -17,7 +17,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-vue": "^9.19.2",
     "prettier": "^3.1.1",
-    "vite": "^5.0.10",
-    "wrangler": "^3.22.4"
+    "vite": "^5.0.10"
   }
 }
