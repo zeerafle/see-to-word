@@ -1,5 +1,6 @@
 <script setup>
-import {ref, watch} from 'vue'
+import { ref, watch } from 'vue'
+import IconButton from '@/components/IconButton.vue'
 
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
@@ -85,28 +86,34 @@ const runInference = async () => {
   <div class="camera">
     <div class="wrapper">
       <div class="buttons">
-      <button class="button" @click="toggleCamera()">
-        <span v-if="!isCameraOpen">Buka Kamera</span>
-        <span v-else>Hentikan Kamera</span>
-      </button>
-      <button @click="runInference()" class="button">Deskripsikan Gambar</button>
+        <IconButton
+          :click-handler="toggleCamera"
+          :description="isCameraOpen ? 'Hentikan Kamera' : 'Buka Kamera'"
+          :icon="isCameraOpen ? 'circle-stop' : 'camera'"
+        />
+        <IconButton
+          :click-handler="runInference"
+          description="Deskripsikan Gambar"
+          icon="robot"
+        />
       </div>
       <div class="video-container">
         <video
-          class="camera-video"
           ref="camera"
-          :width="450"
           :height="337"
+          :width="450"
+          aria-label="A camera feed"
           autoplay
+          class="camera-video"
           playsinline
         ></video>
         <canvas
-          id="photoTaken"
           v-show="isPhotoTaken"
-          class="canvas-photo"
+          id="photoTaken"
           ref="canvas"
-          :width="450"
           :height="337"
+          :width="450"
+          class="canvas-photo"
         ></canvas>
       </div>
     </div>
