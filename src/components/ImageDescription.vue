@@ -1,6 +1,8 @@
 <script setup>
-import {ref, toRef, watch} from 'vue'
+import { ref, toRef, watch } from 'vue'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 
+const loadingStore = useLoadingStore()
 const props = defineProps({
   imageDescription: {
     type: String,
@@ -24,6 +26,7 @@ const translate = async (text) => {
     },
   })
   const data = await response.json()
+  loadingStore.setLoading(false)
   return data.text
 }
 </script>
@@ -42,7 +45,7 @@ p {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   color: #fff;
 }
 

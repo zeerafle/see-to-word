@@ -1,4 +1,7 @@
 <script setup>
+import { useLoadingStore } from '@/stores/loadingStore.js'
+
+const loadingStore = useLoadingStore()
 defineProps({
   icon: {
     type: String,
@@ -12,13 +15,21 @@ defineProps({
     type: String,
     required: true,
   },
+  needLoading: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 })
 </script>
 
 <template>
   <button id="icon-button" @click="clickHandler">
-    <font-awesome-icon :icon="icon" />
-    {{ description }}
+    <font-awesome-icon
+      :icon="loadingStore.getLoading() && needLoading ? 'spinner' : icon"
+      aria-hidden="true"
+    />
+    {{ loadingStore.getLoading() && needLoading ? 'Loading...' : description }}
   </button>
 </template>
 

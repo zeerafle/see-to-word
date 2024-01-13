@@ -1,7 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 import IconButton from '@/components/IconButton.vue'
 
+const loadingStore = useLoadingStore()
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
 const imageDescription = ref('')
@@ -63,6 +65,7 @@ const base64ToArrayBuffer = (base64) => {
 }
 
 const runInference = async () => {
+  loadingStore.setLoading(true)
   takePhoto()
   const canvas = document.querySelector('canvas')
   const image = canvas
@@ -97,6 +100,7 @@ const runInference = async () => {
         />
         <IconButton
           :click-handler="runInference"
+          :need-loading="true"
           description="Deskripsikan Gambar"
           icon="robot"
         />
