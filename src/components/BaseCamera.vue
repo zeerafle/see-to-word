@@ -21,6 +21,10 @@ const createCameraElement = () => {
     .then((stream) => {
       const video = document.querySelector('video')
       video.srcObject = stream
+      video.onloadedmetadata = () => {
+        video.width = video.videoWidth
+        video.height = video.videoHeight
+      }
       video.play()
     })
     .catch((error) => {
@@ -100,8 +104,6 @@ const runInference = async () => {
       <div class="video-container">
         <video
           ref="camera"
-          :height="337"
-          :width="450"
           aria-label="A camera feed"
           autoplay
           class="camera-video"
@@ -111,8 +113,6 @@ const runInference = async () => {
           v-show="isPhotoTaken"
           id="photoTaken"
           ref="canvas"
-          :height="337"
-          :width="450"
           class="canvas-photo"
         ></canvas>
       </div>
@@ -121,9 +121,16 @@ const runInference = async () => {
 </template>
 
 <style scoped>
+.video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
 .camera-video {
   width: 100%;
-  height: 100%;
+  //height: 100%;
   object-fit: cover;
 }
 
