@@ -8,6 +8,7 @@ module.exports = {
     'extends': [
         'eslint:recommended',
         'plugin:vue/vue3-essential',
+        'plugin:vuejs-accessibility/recommended',
         'prettier'
     ],
     'overrides': [
@@ -28,7 +29,8 @@ module.exports = {
         'sourceType': 'module'
     },
     'plugins': [
-        'vue'
+        'vue',
+        'vuejs-accessibility'
     ],
     'rules': {
         'indent': [
