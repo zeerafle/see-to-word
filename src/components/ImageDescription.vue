@@ -30,7 +30,7 @@ const translate = async (text) => {
 
 <template>
   <div class="description-box">
-    <p>{{ translatedDescription }}</p>
+    <p aria-live="assertive">{{ translatedDescription }}</p>
   </div>
 </template>
 
