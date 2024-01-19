@@ -71,19 +71,25 @@ const runInference = async () => {
   const image = canvas
     .toDataURL('image/jpg')
     .replace(/^data:image\/(png|jpg|jpeg);base64,/, '')
-  const response = await fetch(
-    'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + import.meta.env.VITE_HF_API_TOKEN,
-        'Content-Type': 'application/json',
+  try {
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + import.meta.env.VITE_HF_API_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: base64ToArrayBuffer(image),
       },
-      body: base64ToArrayBuffer(image),
-    },
-  )
-  const data = await response.json()
-  imageDescription.value = data[0].generated_text
+    )
+    const data = await response.json()
+    imageDescription.value = data[0].generated_text
+  } catch (error) {
+    loadingStore.setLoading(false)
+    alert(error)
+    console.log(error)
+  }
 }
 
 // setInterval(() => runInference(), 5000)
@@ -134,7 +140,7 @@ const runInference = async () => {
 
 .camera-video {
   width: 100%;
-  //height: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
