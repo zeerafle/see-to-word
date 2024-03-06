@@ -71,20 +71,21 @@ const runInference = async () => {
   const image = canvas
     .toDataURL('image/jpg')
     .replace(/^data:image\/(png|jpg|jpeg);base64,/, '')
+  const arrayBuffer = base64ToArrayBuffer(image)
+  const blob = new Blob([arrayBuffer], { type: 'image/jpg' })
+  const formData = new FormData()
+  formData.append('image', blob, 'image.jpg')
   try {
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
+      'https://image-analysis.calmstone-8c863583.southeastasia.azurecontainerapps.io',
       {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + import.meta.env.VITE_HF_API_TOKEN,
-          'Content-Type': 'application/json',
-        },
-        body: base64ToArrayBuffer(image),
+        body: formData,
       },
     )
     const data = await response.json()
-    imageDescription.value = data[0].generated_text
+    imageDescription.value = data['translated_text']
+    loadingStore.setLoading(false)
   } catch (error) {
     loadingStore.setLoading(false)
     alert(error)

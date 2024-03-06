@@ -1,39 +1,16 @@
 <script setup>
-import { ref, toRef, watch } from 'vue'
-import { useLoadingStore } from '@/stores/loadingStore.js'
-
-const loadingStore = useLoadingStore()
-const props = defineProps({
+defineProps({
   imageDescription: {
     type: String,
     required: true,
   },
 })
 
-const imageDescription = toRef(props, 'imageDescription')
-const translatedDescription = ref('')
-
-watch(imageDescription, async (newVal) => {
-  translatedDescription.value = await translate(newVal)
-})
-
-const translate = async (text) => {
-  const url = `https://deepl-backend.fly.dev/?text=${text}`
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  const data = await response.json()
-  loadingStore.setLoading(false)
-  return data.text
-}
 </script>
 
 <template>
   <div class="description-box">
-    <p aria-live="assertive">{{ translatedDescription }}</p>
+    <p aria-live="assertive">{{ imageDescription }}</p>
   </div>
 </template>
 
