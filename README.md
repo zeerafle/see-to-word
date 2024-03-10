@@ -1,16 +1,19 @@
-# see-to-word
+# SeeToWord
 
-This template should help get you started developing with Vue 3 in Vite.
-
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+Website repository for [SeeToWord](https://seetoword.pages.dev).
 
 ## Project Setup
+
+Create a `.env` file in the root directory with the following content:
+
+```
+VITE_COGNITIVE_SERVICE_KEY=<YOUR_AZURE_COGNITIVE_SERVICE_KEY>
+VITE_COGNITIVE_SERVICE_ENDPOINT=<YOUR_AZURE_COGNITIVE_SERVICE_ENDPOINT>
+VITE_COGNITIVE_SERVICE_LOCATION=<YOUR_AZURE_COGNITIVE_SERVICE_LOCATION>
+VITE_BLOB_SERVICE_SAS_URL=<YOUR_AZURE_BLOB_SERVICE_SAS_URL>
+```
+
+### Install Dependencies
 
 ```sh
 npm install
@@ -27,3 +30,7 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## Screenshot
+
+![Screenshot](./screenshot.jpg)
