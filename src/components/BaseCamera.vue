@@ -2,6 +2,9 @@
 import { ref, watch } from 'vue'
 import { useLoadingStore } from '@/stores/loadingStore.js'
 import IconButton from '@/components/IconButton.vue'
+import { BlobServiceClient } from '@azure/storage-blob'
+import createClient from '@azure-rest/ai-vision-image-analysis'
+import { AzureKeyCredential } from '@azure/core-auth'
 
 const loadingStore = useLoadingStore()
 const isCameraOpen = ref(false)
@@ -9,6 +12,48 @@ const isPhotoTaken = ref(false)
 const imageDescription = ref('')
 const emit = defineEmits(['description-updated'])
 watch(imageDescription, (newVal) => emit('description-updated', newVal))
+
+// azure blob storage
+const blobSasUrl = import.meta.env.VITE_BLOB_SERVICE_SAS_URL
+const blobServiceClient = new BlobServiceClient(blobSasUrl)
+const containerName = 'image-blobs'
+const containerClient = blobServiceClient.getContainerClient(containerName)
+
+const uploadFiles = async (file, fileName) => {
+  try {
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName)
+    const uploadBlobResponse = await blockBlobClient.upload(
+      file,
+      file.byteLength,
+    )
+    console.log(
+      `Upload block blob ${fileName} successfully`,
+      uploadBlobResponse.requestId,
+    )
+    return blockBlobClient.url
+  } catch (error) {
+    console.log(error.message)
+  }
+}
+
+// image analysis
+const endpoint = import.meta.env.VITE_COGNITIVE_SERVICE_ENDPOINT
+const key = import.meta.env.VITE_COGNITIVE_SERVICE_KEY
+const credential = new AzureKeyCredential(key)
+const client = new createClient(endpoint, credential)
+const features = ['Caption', 'Read']
+
+const analyzeImageFromUrl = async (imageUrl) => {
+  return client.path('/imageanalysis:analyze').post({
+    body: {
+      url: imageUrl,
+    },
+    queryParameters: {
+      features: features,
+    },
+    contentType: 'application/json',
+  })
+}
 
 const createCameraElement = () => {
   const constraints = (window.constraints = {
@@ -72,25 +117,15 @@ const runInference = async () => {
     .toDataURL('image/jpg')
     .replace(/^data:image\/(png|jpg|jpeg);base64,/, '')
   const arrayBuffer = base64ToArrayBuffer(image)
-  const blob = new Blob([arrayBuffer], { type: 'image/jpg' })
-  const formData = new FormData()
-  formData.append('image', blob, 'image.jpg')
-  try {
-    const response = await fetch(
-      'https://image-analysis.calmstone-8c863583.southeastasia.azurecontainerapps.io',
-      {
-        method: 'POST',
-        body: formData,
-      },
-    )
-    const data = await response.json()
-    imageDescription.value = data['translated_text']
-    loadingStore.setLoading(false)
-  } catch (error) {
-    loadingStore.setLoading(false)
-    alert(error)
-    console.log(error)
+  const fileName = 'image-' + Date.now() + '.jpg'
+  const imageUrl = await uploadFiles(arrayBuffer, fileName)
+  const data = await analyzeImageFromUrl(imageUrl)
+  let text = data.body.captionResult.text
+  if (data.body.readResult.length > 0) {
+    text += '. And there is text says ' + data.body.readResult.blocks.map((line) => line).join(' ')
   }
+  imageDescription.value = text
+  loadingStore.setLoading(false)
 }
 
 // setInterval(() => runInference(), 5000)

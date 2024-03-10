@@ -1,16 +1,51 @@
 <script setup>
-defineProps({
+import { ref, toRef, watch } from 'vue'
+import { useLoadingStore } from '@/stores/loadingStore.js'
+import TextTranslationClient from '@azure-rest/ai-translation-text'
+
+const loadingStore = useLoadingStore()
+const props = defineProps({
   imageDescription: {
     type: String,
     required: true,
   },
 })
+const key = import.meta.env.VITE_COGNITIVE_SERVICE_KEY
+const endpoint = import.meta.env.VITE_COGNITIVE_SERVICE_ENDPOINT
+const region = import.meta.env.VITE_COGNITIVE_SERVICE_LOCATION
+const translateCredential = {
+  key: key,
+  region
+}
+
+const imageDescription = toRef(props, 'imageDescription')
+const translatedDescription = ref('')
+
+watch(imageDescription, async (newVal) => {
+  translatedDescription.value = await translate(newVal)
+  loadingStore.setLoading(false)
+})
+
+const translate = async (text) => {
+  const translationClient = new TextTranslationClient(endpoint, translateCredential)
+  const inputText = [{ text: text }]
+  const translateResponse = await translationClient.path('/translate').post({
+    body: inputText,
+    queryParameters: {
+      from: 'en',
+      to: 'id',
+    },
+  })
+  const result = await translateResponse.body
+  console.log(translateResponse.body)
+  return result[0].translations[0].text
+}
 
 </script>
 
 <template>
   <div class="description-box">
-    <p aria-live="assertive">{{ imageDescription }}</p>
+    <p aria-live="assertive">{{ translatedDescription }}</p>
   </div>
 </template>
 
