@@ -122,7 +122,9 @@ const runInference = async () => {
   const data = await analyzeImageFromUrl(imageUrl)
   let text = data.body.captionResult.text
   if (data.body.readResult.length > 0) {
-    text += '. And there is text says ' + data.body.readResult.blocks.map((line) => line).join(' ')
+    text +=
+      '. And there is text says ' +
+      data.body.readResult.blocks.map((line) => line).join(' ')
   }
   imageDescription.value = text
   loadingStore.setLoading(false)
