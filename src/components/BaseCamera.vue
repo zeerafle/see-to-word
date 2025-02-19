@@ -1,15 +1,12 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useLoadingStore } from '@/stores/loadingStore.js'
 import IconButton from '@/components/IconButton.vue'
 
 const loadingStore = useLoadingStore()
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
-const imageDescription = ref('')
-const emit = defineEmits(['description-updated'])
-
-watch(imageDescription, (newVal) => emit('description-updated', newVal))
+const vttSrc = ref('')
 
 const createCameraElement = () => {
   const constraints = (window.constraints = {
@@ -101,7 +98,17 @@ const getDescription = async () => {
   })
 
   const data = await result.json()
-  imageDescription.value = data.translation
+
+  // Create a simple VTT file content for the description.
+  // Adjust the timestamps as needed.
+  const vttContent = `WEBVTT
+
+00:00:00.000 --> 00:05:00.000
+${data.translation}
+`
+  const vttBlob = new Blob([vttContent], { type: 'text/vtt' })
+  vttSrc.value = URL.createObjectURL(vttBlob)
+
   if (data.audio) {
     const audioBlob = b64toBlob(data.audio, 'audio/wav')
     const audioUrl = URL.createObjectURL(audioBlob)
@@ -110,8 +117,6 @@ const getDescription = async () => {
   }
   loadingStore.setLoading(false)
 }
-
-// setInterval(() => runInference(), 5000)
 </script>
 
 <template>
@@ -137,7 +142,9 @@ const getDescription = async () => {
           autoplay
           class="camera-video"
           playsinline
-        ></video>
+        >
+            <track kind="captions" :src="vttSrc" label="Image Description" srclang="id" default />
+        </video>
         <canvas
           v-show="isPhotoTaken"
           id="photoTaken"
