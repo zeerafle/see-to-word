@@ -80,12 +80,7 @@ const getDescription = async () => {
     .toDataURL('image/jpg')
     .replace(/^data:image\/(png|jpg|jpeg);base64,/, '')
 
-  let api_endpoint
-  if (import.meta.env.MODE == 'development') {
-    api_endpoint = 'http://127.0.0.1:8000'
-  } else {
-    api_endpoint = import.meta.env.VITE_API_ENDPOINT
-  }
+  const api_endpoint = import.meta.env.VITE_API_ENDPOINT
 
   const result = await fetch(`${api_endpoint}/describe`, {
     method: 'POST',
