@@ -1,59 +1,12 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useLoadingStore } from '@/stores/loadingStore.js'
 import IconButton from '@/components/IconButton.vue'
-import { BlobServiceClient } from '@azure/storage-blob'
-import createClient from '@azure-rest/ai-vision-image-analysis'
-import { AzureKeyCredential } from '@azure/core-auth'
 
 const loadingStore = useLoadingStore()
 const isCameraOpen = ref(false)
 const isPhotoTaken = ref(false)
-const imageDescription = ref('')
-const emit = defineEmits(['description-updated'])
-watch(imageDescription, (newVal) => emit('description-updated', newVal))
-
-// azure blob storage
-const blobSasUrl = import.meta.env.VITE_BLOB_SERVICE_SAS_URL
-const blobServiceClient = new BlobServiceClient(blobSasUrl)
-const containerName = 'image-blobs'
-const containerClient = blobServiceClient.getContainerClient(containerName)
-
-const uploadFiles = async (file, fileName) => {
-  try {
-    const blockBlobClient = containerClient.getBlockBlobClient(fileName)
-    const uploadBlobResponse = await blockBlobClient.upload(
-      file,
-      file.byteLength,
-    )
-    console.log(
-      `Upload block blob ${fileName} successfully`,
-      uploadBlobResponse.requestId,
-    )
-    return blockBlobClient.url
-  } catch (error) {
-    console.log(error.message)
-  }
-}
-
-// image analysis
-const endpoint = import.meta.env.VITE_COGNITIVE_SERVICE_ENDPOINT
-const key = import.meta.env.VITE_COGNITIVE_SERVICE_KEY
-const credential = new AzureKeyCredential(key)
-const client = new createClient(endpoint, credential)
-const features = ['Caption', 'Read']
-
-const analyzeImageFromUrl = async (imageUrl) => {
-  return client.path('/imageanalysis:analyze').post({
-    body: {
-      url: imageUrl,
-    },
-    queryParameters: {
-      features: features,
-    },
-    contentType: 'application/json',
-  })
-}
+const vttSrc = ref('')
 
 const createCameraElement = () => {
   const constraints = (window.constraints = {
@@ -99,38 +52,66 @@ const takePhoto = () => {
   isPhotoTaken.value = true
 }
 
-const base64ToArrayBuffer = (base64) => {
-  const binaryString = window.atob(base64)
-  const len = binaryString.length
-  const bytes = new Uint8Array(len)
-  for (let i = 0; i < len; ++i) {
-    bytes[i] = binaryString.charCodeAt(i)
+// Helper function to convert base64 string to Blob
+function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
+  const byteCharacters = atob(b64Data)
+  const byteArrays = []
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize)
+
+    const byteNumbers = new Array(slice.length)
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
   }
-  return bytes.buffer
+
+  return new Blob(byteArrays, { type: contentType })
 }
 
-const runInference = async () => {
+const getDescription = async () => {
   loadingStore.setLoading(true)
   takePhoto()
   const canvas = document.querySelector('canvas')
   const image = canvas
     .toDataURL('image/jpg')
     .replace(/^data:image\/(png|jpg|jpeg);base64,/, '')
-  const arrayBuffer = base64ToArrayBuffer(image)
-  const fileName = 'image-' + Date.now() + '.jpg'
-  const imageUrl = await uploadFiles(arrayBuffer, fileName)
-  const data = await analyzeImageFromUrl(imageUrl)
-  let text = data.body.captionResult.text
-  if (data.body.readResult.length > 0) {
-    text +=
-      '. And there is text says ' +
-      data.body.readResult.blocks.map((line) => line).join(' ')
+
+  const api_endpoint = import.meta.env.VITE_API_ENDPOINT
+
+  const result = await fetch(`${api_endpoint}/describe`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      'base64_image': image
+    }),
+  })
+
+  const data = await result.json()
+
+  // Create a simple VTT file content for the description.
+  // Adjust the timestamps as needed.
+  const vttContent = `WEBVTT
+
+00:00:00.000 --> 00:05:00.000
+${data.translation}
+`
+  const vttBlob = new Blob([vttContent], { type: 'text/vtt' })
+  vttSrc.value = URL.createObjectURL(vttBlob)
+
+  if (data.audio) {
+    const audioBlob = b64toBlob(data.audio, 'audio/wav')
+    const audioUrl = URL.createObjectURL(audioBlob)
+    const audio = new Audio(audioUrl)
+    audio.play()
   }
-  imageDescription.value = text
   loadingStore.setLoading(false)
 }
-
-// setInterval(() => runInference(), 5000)
 </script>
 
 <template>
@@ -143,7 +124,7 @@ const runInference = async () => {
           :icon="isCameraOpen ? 'circle-stop' : 'camera'"
         />
         <IconButton
-          :click-handler="runInference"
+          :click-handler="getDescription"
           :need-loading="true"
           description="Deskripsikan Gambar"
           icon="robot"
@@ -156,7 +137,9 @@ const runInference = async () => {
           autoplay
           class="camera-video"
           playsinline
-        ></video>
+        >
+            <track kind="captions" :src="vttSrc" label="Image Description" srclang="id" default />
+        </video>
         <canvas
           v-show="isPhotoTaken"
           id="photoTaken"
